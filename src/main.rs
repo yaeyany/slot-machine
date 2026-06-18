@@ -1,21 +1,21 @@
 mod symbols;
 mod spin;
-use::std::io::*;
+mod user;
 
+use::std::io::*;
 use spin::full_spin;
 
 fn main() {
 
-    let mut score = 1000u32;
     println!("Welcome to our slot machine");
+    let mut user = user::User::new();
     loop {
-
-        if score == 0 {
+        if user.score_look() == &0u32 {
             println!("Game over");
             break;
         }
 
-        println!("You currently have {}.\nPlease make a bet: ", score);
+        println!("Player: {}\nYou currently have {}.\nPlease make a bet: ", &user.name, user.score_look());
         
         let mut bet = String::new();
         stdin().read_line(&mut bet).expect("Failed_bet");
@@ -23,17 +23,15 @@ fn main() {
         
         match bet_trim.as_str() {
             "q"| "quit"| "exit"| "cancel" => {
-                println!("Goodbye, your score was {}", score);
+                println!("Goodbye, your score was {}", user.score_look());
                 break;
             },
             "topup" => {
-                score += 1000;
-                println!("The house always wins");
+                user.topup();
                 continue;
             }
             "supersecretcheatcode" => {
-                score += 1000000;
-                println!("Why?");
+                user.supersecretcheatcode();
                 continue;
             }
             _ => (),
@@ -51,17 +49,17 @@ fn main() {
                 }
             };
             
-        if betval > score {
-            println!("Not enough credits! Current: {}", score);
+        if &betval > user.score_look() {
+            println!("Not enough credits! Current: {}", user.score_look());
             continue;
         }
 
-        score -= betval;
+        user.score -= betval;
         let (x,y,z) = full_spin();
 
         if x == y && y == z {
             let win_amount = betval * x.payout();
-            score += win_amount;
+            user.score += win_amount;
             println!("Congrats")
         } else {
             println!("No win");
