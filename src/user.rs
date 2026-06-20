@@ -1,8 +1,11 @@
 use std::io::stdin;
 
+use crate::spin::full_spin;
+
 pub struct User {
     pub name: String,
-    pub score: u32
+    score: u32,
+    high_score: u32
 }
 
 impl User {
@@ -20,26 +23,57 @@ impl User {
             } else {
                 return User {
                 name,
-                score: 1000u32
+                score: 1000u32,
+                high_score: 1000u32,
                 }
             }
         }
         
     }
 
-    pub fn score_look(&self) -> &u32 {
-        &self.score
+    pub fn score(&self) -> u32 {
+        self.score
     }
+    
+    pub fn high_score(&self) -> u32 {
+        self.high_score
+    }
+
+    pub fn add_score(&mut self, add: u32) {
+        self.score += add;
+        if self.score > self.high_score {
+            self.high_score = self.score
+        }
+    }
+
     pub fn topup(&mut self) {
-        self.score += 1000;
-        println!("The house always wins");
+        self.add_score(1000);
+        println!("\nThe house always wins");
     }
+
     pub fn supersecretcheatcode(&mut self) {
-        self.score += 1000000;
-        println!("Why?");
+        self.add_score(1000000);
+        println!("\nWhy?");
+    }
+
+    pub fn place_bet(&mut self, betval: u32){
+        self.score -= betval;
+        let (x,y,z) = full_spin();
+        if x == y && y == z {
+            let win_amount = betval * x.payout();
+            self.add_score(win_amount);
+            println!("Congrats")
+        } else {
+            println!("No win");
+        };
+
+    }
+
+    pub fn restart(&mut self) {
+        self.score = 1000;
     }
 }
 
-fn name_check(name: &String) -> bool {
+fn name_check(name: &str) -> bool {
     name.trim().is_empty() 
 }
