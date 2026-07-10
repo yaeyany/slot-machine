@@ -1,6 +1,6 @@
 use std::io::stdin;
 
-use crate::spin::full_spin;
+use crate::spin::spin_result;
 
 pub struct User {
     pub name: String,
@@ -57,20 +57,22 @@ impl User {
     }
 
     pub fn place_bet(&mut self, betval: u32){
-        self.score -= betval;
-        let (x,y,z) = full_spin();
-        if x == y && y == z {
-            let win_amount = betval * x.payout();
-            self.add_score(win_amount);
-            println!("Congrats")
+        if betval > self.score() {
+            println!("Not enough credits! Current: {}", &self.score());
+        } else if betval == 0 {
+            println!("Cannot bet 0");
         } else {
-            println!("No win");
-        };
-
+            self.deduct_bet(betval);
+            spin_result(self, betval);
+        }
     }
 
     pub fn restart(&mut self) {
         self.score = 1000;
+    }
+
+    pub fn deduct_bet(&mut self, betval: u32) {
+        self.score -= betval;
     }
 }
 

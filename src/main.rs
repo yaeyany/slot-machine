@@ -2,46 +2,42 @@ mod symbols;
 mod spin;
 mod user;
 mod input;
+mod commands;
 
-use crate::input::{input, match_input};
+
+use thiserror::Error;
+use crate::{commands::{Commands, execute_command}, input::input, user::User};
+
+#[derive(Error, Debug)]
+pub enum Errors {
+    #[error("Command unknown")]
+    CommandError,
+}
 
 fn main() {
 
     println!("Welcome to our slot machine");
-    let mut user = user::User::new();
+    let mut user = User::new();
     loop {
         if user.score() == 0 {
             println!("Game over, high score is {}\nWrite anything to start again, Q to quit", &user.high_score());
-            let bet_trim = input();
-            if match_input(&mut user, &bet_trim) {
-                break;
-            };
-            user.restart();
+            let input = input();
+            match Commands::try_from(input) {
+                Ok(Commands::Quit) => break,
+                _ => user.restart(),
+            }
         }
 
         println!("\nYou have {}. Please make a bet: ", user.score());
         
-        let bet_trim = input();
-        if match_input(&mut user, &bet_trim) {
-            break;
-        };
-        
-        let betval: u32 = match bet_trim.parse::<u32>() {
-            Ok(0) => {
-                println!("Bet must be at least 1");
-                continue;
+        let input = input();
+
+        if let Ok(bet) = input.parse::<u32>() {
+            user.place_bet(bet);
+        } else {
+            if let Ok(command) = input.try_into() {
+                execute_command(command, &mut user);
             }
-            Ok(num) => num,
-            Err(_) => {
-                println!("Please write a number");
-                continue;
-                }
-            };
-            
-        if betval > user.score() {
-            println!("Not enough credits! Current: {}", &user.score());
-            continue;
         }
-        user.place_bet(betval);
     };
 }

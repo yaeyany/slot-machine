@@ -1,4 +1,5 @@
 use crate::symbols::{ALL_SYMBOLS, WEIGHTS, Symbol};
+use crate::user::User;
 use::rand::prelude::*;
 use::rand::distr::weighted::WeightedIndex;
 
@@ -16,3 +17,13 @@ pub fn full_spin() -> (Symbol,Symbol,Symbol) {
     (left, middle, right)
 }
  
+pub fn spin_result(user: &mut User, betval: u32) {
+    let (x,y,z) = full_spin();
+    if x == y && y == z {
+        let win_amount = betval * x.payout();
+        user.add_score(win_amount);
+        println!("Congrats")
+    } else {
+        println!("No win");
+    };
+}
