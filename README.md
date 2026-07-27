@@ -25,5 +25,5 @@ cargo run
 ## Future Improvements
 
 - Saving via serde
-- Better user feedback
-- Configurable payouts
+- Making different users
+- Combos?
