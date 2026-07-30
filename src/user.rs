@@ -1,6 +1,4 @@
-use std::io::stdin;
-
-use crate::spin::spin_result;
+use crate::{Errors, errors::{Errors::{BetError, UsernameError}, helper}, input::user_input, spin::spin_result};
 
 pub struct User {
     pub name: String,
@@ -8,27 +6,43 @@ pub struct User {
     high_score: u32
 }
 
-impl User {
-    pub fn new() -> User {
-        loop {
-            println!("Please choose a name");
+impl TryFrom<&str> for User {
+    type Error = Errors;
 
-            let mut name = String::new();
-            stdin().read_line(&mut name).expect("Failed to read name");
-            name = name.trim().to_string();
-
-            if name_check(&name) {
-                println!("Name cannot be empty");
-                continue;
-            } else {
-                return User {
-                name,
-                score: 1000u32,
-                high_score: 1000u32,
-                }
-            }
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        if value.is_empty() || value.len() > 50 {
+            Err(UsernameError)
+        } else {
+            Ok(User {
+            name: value.to_string(),
+            score: 1000u32,
+            high_score: 1000u32,
+            })
         }
-        
+    }
+}
+
+impl TryFrom<String> for User {
+    type Error = Errors;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        value.as_str().try_into()
+    }
+}
+
+pub fn parse_bet(bet: String) -> Result<u32,Errors> {
+    if let Ok(bet) = bet.parse::<u32>() {
+        Ok(bet)
+    } else {
+        Err(BetError)
+    }
+}
+
+impl User {
+    pub fn new() -> Result<User, Errors> {
+        println!("Please choose a name");
+        let name = user_input()?; 
+        name.try_into()      
     }
 
     pub fn score(&self) -> u32 {
@@ -56,19 +70,28 @@ impl User {
         println!("\nWhy?");
     }
 
-    pub fn place_bet(&mut self, betval: u32){
-        if betval > self.score() {
+    pub fn place_bet(&mut self) -> Result<(), Errors> {
+        let input = user_input()?;
+        let bet = parse_bet(input)?;
+        self.process_bet(bet);
+        Ok(())
+
+    }
+
+    pub fn process_bet(&mut self, bet: u32) {
+        if bet > self.score() {
             println!("Not enough credits! Current: {}", &self.score());
-        } else if betval == 0 {
+        } else if bet == 0 {
             println!("Cannot bet 0");
         } else {
-            self.deduct_bet(betval);
-            spin_result(self, betval);
+            self.deduct_bet(bet);
+            spin_result(self, bet);
         }
     }
 
     pub fn restart(&mut self) {
         self.score = 1000;
+        helper();
     }
 
     pub fn deduct_bet(&mut self, betval: u32) {
@@ -76,6 +99,3 @@ impl User {
     }
 }
 
-fn name_check(name: &str) -> bool {
-    name.trim().is_empty() 
-}

@@ -1,7 +1,11 @@
 use std::io::stdin;
 
-pub fn input() -> String{
+use crate::Errors::{self, InputError};
+
+pub fn user_input() -> Result<String, Errors>{
     let mut input = String::new();
-    stdin().read_line(&mut input).expect("Failed to read input");
-    input.trim().to_lowercase()
+    if stdin().read_line(&mut input).is_err() {
+        return Err(InputError);
+    }
+    Ok(input.trim().to_string())
 }
