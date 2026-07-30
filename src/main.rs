@@ -1,11 +1,11 @@
+use crate::{commands::{CommandOutcome, Commands, execute_command, game_loss, welcome}, errors::{Errors, handle_error}, input::user_input, user::User};
+
 mod symbols;
 mod spin;
 mod user;
 mod input;
 mod commands;
 mod errors;
-
-use crate::{commands::{CommandOutcome, Commands, execute_command, game_loss, welcome}, errors::{Errors, handle_error}, input::user_input, user::User};
 
 fn main() -> Result<(), Errors>{
     let mut user = User::new()?;

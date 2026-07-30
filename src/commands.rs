@@ -1,6 +1,6 @@
 use colored::Colorize;
 
-use crate::{Errors::{self, CommandError}, commands::{CommandOutcome::{Continue, Quit}, Commands::Help}, errors::helper, input::user_input, user::{self, User}};
+use crate::{Errors, errors::helper, input::user_input, user::User};
 pub enum Commands {
     Bet,
     Stats,
@@ -26,7 +26,7 @@ impl TryFrom<&str> for Commands {
             "4" | "h" | "help" => Ok(Commands::Help),
             "5" | "q" | "quit" => Ok(Commands::Quit),
             "supersecretcheatcode" => Ok(Commands::Cheat),
-            _ => Err(CommandError)
+            _ => Err(Errors::CommandError)
         }
     }
 }
@@ -72,7 +72,7 @@ pub fn execute_command(command: Commands, user: &mut User) -> Result<CommandOutc
         Commands::Bet => {
             println!("You currently have {} credits. Please make a bet:", user.score());
             user.place_bet()?;
-            Ok(Continue)
+            Ok(CommandOutcome::Continue)
         }
         Commands::Stats => {
             println!(
@@ -81,12 +81,12 @@ pub fn execute_command(command: Commands, user: &mut User) -> Result<CommandOutc
                 &user.high_score(),
                 &user.score()
             );
-            Ok(Continue)
+            Ok(CommandOutcome::Continue)
         }
 
         Commands::Topup => {
             user.topup();
-            Ok(Continue)
+            Ok(CommandOutcome::Continue)
         }
 
         Commands::Help => {
@@ -99,17 +99,17 @@ pub fn execute_command(command: Commands, user: &mut User) -> Result<CommandOutc
                 "\"5\", \"q\"".bold(),
                 "\"supersecretcheatcode\"".bold()
             );
-            Ok(Continue)
+            Ok(CommandOutcome::Continue)
         }
 
         Commands::Quit => {
             farewell(user);
-            Ok(Quit)
+            Ok(CommandOutcome::Quit)
         }
 
         Commands::Cheat => {
             user.supersecretcheatcode();
-            Ok(Continue)
+            Ok(CommandOutcome::Continue)
         }
     }
 }

@@ -1,4 +1,5 @@
-use crate::{Errors, errors::{Errors::{BetError, UsernameError}, helper}, input::user_input, spin::spin_result};
+use crate::{errors::{Errors, helper}, input::user_input, spin::spin_result};
+
 
 pub struct User {
     pub name: String,
@@ -11,7 +12,7 @@ impl TryFrom<&str> for User {
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         if value.is_empty() || value.len() > 50 {
-            Err(UsernameError)
+            Err(Errors::UsernameError)
         } else {
             Ok(User {
             name: value.to_string(),
@@ -34,7 +35,7 @@ pub fn parse_bet(bet: String) -> Result<u32,Errors> {
     if let Ok(bet) = bet.parse::<u32>() {
         Ok(bet)
     } else {
-        Err(BetError)
+        Err(Errors::BetError)
     }
 }
 

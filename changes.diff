@@ -1,0 +1,114 @@
+diff --git a/src/commands.rs b/src/commands.rs
+index 4346d12..67f73dd 100644
+--- a/src/commands.rs
++++ b/src/commands.rs
+@@ -1,6 +1,6 @@
+ use colored::Colorize;
+ 
+-use crate::{Errors::{self, CommandError}, commands::{CommandOutcome::{Continue, Quit}, Commands::Help}, errors::helper, input::user_input, user::{self, User}};
++use crate::{Errors, errors::helper, input::user_input, user::User};
+ pub enum Commands {
+     Bet,
+     Stats,
+@@ -26,7 +26,7 @@ impl TryFrom<&str> for Commands {
+             "4" | "h" | "help" => Ok(Commands::Help),
+             "5" | "q" | "quit" => Ok(Commands::Quit),
+             "supersecretcheatcode" => Ok(Commands::Cheat),
+-            _ => Err(CommandError)
++            _ => Err(Errors::CommandError)
+         }
+     }
+ }
+@@ -72,7 +72,7 @@ pub fn execute_command(command: Commands, user: &mut User) -> Result<CommandOutc
+         Commands::Bet => {
+             println!("You currently have {} credits. Please make a bet:", user.score());
+             user.place_bet()?;
+-            Ok(Continue)
++            Ok(CommandOutcome::Continue)
+         }
+         Commands::Stats => {
+             println!(
+@@ -81,12 +81,12 @@ pub fn execute_command(command: Commands, user: &mut User) -> Result<CommandOutc
+                 &user.high_score(),
+                 &user.score()
+             );
+-            Ok(Continue)
++            Ok(CommandOutcome::Continue)
+         }
+ 
+         Commands::Topup => {
+             user.topup();
+-            Ok(Continue)
++            Ok(CommandOutcome::Continue)
+         }
+ 
+         Commands::Help => {
+@@ -99,17 +99,17 @@ pub fn execute_command(command: Commands, user: &mut User) -> Result<CommandOutc
+                 "\"5\", \"q\"".bold(),
+                 "\"supersecretcheatcode\"".bold()
+             );
+-            Ok(Continue)
++            Ok(CommandOutcome::Continue)
+         }
+ 
+         Commands::Quit => {
+             farewell(user);
+-            Ok(Quit)
++            Ok(CommandOutcome::Quit)
+         }
+ 
+         Commands::Cheat => {
+             user.supersecretcheatcode();
+-            Ok(Continue)
++            Ok(CommandOutcome::Continue)
+         }
+     }
+ }
+diff --git a/src/main.rs b/src/main.rs
+index 5eeb7be..f704b7a 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -1,3 +1,5 @@
++use crate::{commands::{CommandOutcome, Commands, execute_command, game_loss, welcome}, errors::{Errors, handle_error}, input::user_input, user::User};
++
+ mod symbols;
+ mod spin;
+ mod user;
+@@ -5,8 +7,6 @@ mod input;
+ mod commands;
+ mod errors;
+ 
+-use crate::{commands::{CommandOutcome, Commands, execute_command, game_loss, welcome}, errors::{Errors, handle_error}, input::user_input, user::User};
+-
+ fn main() -> Result<(), Errors>{
+     let mut user = User::new()?;
+     welcome();
+diff --git a/src/user.rs b/src/user.rs
+index 15899cd..2369ddd 100644
+--- a/src/user.rs
++++ b/src/user.rs
+@@ -1,4 +1,5 @@
+-use crate::{Errors, errors::{Errors::{BetError, UsernameError}, helper}, input::user_input, spin::spin_result};
++use crate::{errors::{Errors, helper}, input::user_input, spin::spin_result};
++
+ 
+ pub struct User {
+     pub name: String,
+@@ -11,7 +12,7 @@ impl TryFrom<&str> for User {
+ 
+     fn try_from(value: &str) -> Result<Self, Self::Error> {
+         if value.is_empty() || value.len() > 50 {
+-            Err(UsernameError)
++            Err(Errors::UsernameError)
+         } else {
+             Ok(User {
+             name: value.to_string(),
+@@ -34,7 +35,7 @@ pub fn parse_bet(bet: String) -> Result<u32,Errors> {
+     if let Ok(bet) = bet.parse::<u32>() {
+         Ok(bet)
+     } else {
+-        Err(BetError)
++        Err(Errors::BetError)
+     }
+ }
+ 
